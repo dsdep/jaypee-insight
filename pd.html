@@ -1,0 +1,42 @@
+<!DOCTYPE html> 
+<html>
+
+
+<head>
+	<title>Jaypee Insight Feedback Form</title>
+	<!-----Including CSS for different screen sizes----->
+	<link rel="stylesheet" type="text/css" href="pdform.css">
+	<link rel="stylesheet" media="screen and (max-width: 1200px) and (min-width: 601px)" href="pdform1.css" />
+	<link rel="stylesheet" media="screen and (max-width: 600px) and (min-width: 351px)" href="pdform2.css" />
+	<link rel="stylesheet" media="screen and (max-width: 350px)" href="pdform3.css" />
+</head>
+
+<div id="envelope">
+<header>
+    Jaypee Insight Feedback Form
+</header>
+
+
+<body>
+<form action="feedback.php" method="post">  
+	
+        <label name="fname">First Name</label>
+
+        <input type="text" name="fname" placeholder=" Priyansha" pattern="^[A-Za-z]*" required="required">
+
+        <label name="lname">Last Name</label>
+
+        <input type="text" name="lname" placeholder=" Dwivedi" pattern="^[A-Za-z]*" required="required">   
+        
+        <label name="email">Email</label>     
+	<input type="text" name="email" placeholder="yourname@gmail.com" pattern="^[A-Za-z0-9._]*\@[A-Za-z]*\.[A-Za-z]{2,5}$" required="required">		
+	<label name="contact">  Contact Number </label>
+	<input type="text" name="contact" placeholder="123456789" pattern="[+]?[\.\s\-\(\)\*\#0-9]{3,}" required="required" minlength="10" maxlength="10">	
+	
+	<label name="message">  Message </label>
+	<textarea name="message" rows="10" cols="15" placeholder="Message" required="required"></textarea>
+	<input type="submit" name="submit" value="Send Message" id="submit">		
+</form>
+</div>
+</body>
+</html>

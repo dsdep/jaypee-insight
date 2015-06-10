@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<head>
+<script>
+var sse2 = function () {
+    var rebound = 20; //set it to 0 if rebound effect is not prefered
+    var slip, k;
+    return {
+        buildMenu: function () {
+            var m = document.getElementById('sses2');
+            if (!m) return;
+            var ul = m.getElementsByTagName("ul")[0];
+            m.style.width = ul.offsetWidth + 1 + "px";
+            var items = m.getElementsByTagName("li");
+            var a = m.getElementsByTagName("a");
+
+            slip = document.createElement("li");
+            slip.className = "highlight";
+            ul.appendChild(slip);
+
+            var url = document.location.href.toLowerCase();
+            k = -1;
+            var nLength = -1;
+            for (var i = 0; i < a.length; i++) {
+                if (url.indexOf(a[i].href.toLowerCase()) != -1 && a[i].href.length > nLength) {
+                    k = i;
+                    nLength = a[i].href.length;
+                }
+            }
+
+            if (k == -1 && /:\/\/(?:www\.)?[^.\/]+?\.[^.\/]+\/?$/.test) {
+                for (var i = 0; i < a.length; i++) {
+                    if (a[i].getAttribute("maptopuredomain") == "true") {
+                        k = i;
+                        break;
+                    }
+                }
+                if (k == -1 && a[0].getAttribute("maptopuredomain") != "false")
+                    k = 0;
+            }
+            if (k > -1) {
+                slip.style.width = items[k].offsetWidth + "px";
+                //slip.style.left = items[k].offsetLeft + "px";
+                sse2.move(items[k]); //comment out this line and uncomment the line above to disable initial animation
+            }
+            else {
+                slip.style.visibility = "hidden";
+            }
+
+            for (var i = 0; i < items.length - 1; i++) {
+                items[i].onmouseover = function () {
+                    if (k == -1) slip.style.visibility = "visible";
+                    if (this.offsetLeft != slip.offsetLeft) {
+                        sse2.move(this);
+                    }
+                }
+            }
+
+            m.onmouseover = function () {
+                if (slip.t2)
+                    slip.t2 = clearTimeout(slip.t2);
+            };
+
+            m.onmouseout = function () {
+                if (k > -1 && items[k].offsetLeft != slip.offsetLeft) {
+                    slip.t2 = setTimeout(function () { sse2.move(items[k]); }, 50);
+                }
+                if (k == -1) slip.t2 = setTimeout(function () { slip.style.visibility = "hidden"; }, 50);
+            };
+        },
+        move: function (target) {
+            clearInterval(slip.timer);
+            var direction = (slip.offsetLeft < target.offsetLeft) ? 1 : -1;
+            slip.timer = setInterval(function () { sse2.mv(target, direction); }, 15);
+        },
+        mv: function (target, direction) {
+            if (direction == 1) {
+                if (slip.offsetLeft - rebound < target.offsetLeft)
+                    this.changePosition(target, 1);
+                else {
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, 1);
+                    }, 15);
+                }
+            }
+            else {
+                if (slip.offsetLeft + rebound > target.offsetLeft)
+                    this.changePosition(target, -1);
+                else {
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, -1);
+                    }, 15);
+                }
+            }
+            this.changeWidth(target);
+        },
+        recoil: function (target, direction) {
+            if (direction == -1) {
+                if (slip.offsetLeft > target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft + 2 + "px";
+            }
+            else {
+                if (slip.offsetLeft < target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft - 2 + "px";
+            }
+        },
+        changePosition: function (target, direction) {
+            if (direction == 1) {
+                //following +1 will fix the IE8 bug of x+1=x, we force it to x+2
+                slip.style.left = slip.offsetLeft + Math.ceil(Math.abs(target.offsetLeft - slip.offsetLeft + rebound) / 10) + 1 + "px";
+            }
+            else {
+                //following -1 will fix the Opera bug of x-1=x, we force it to x-2
+                slip.style.left = slip.offsetLeft - Math.ceil(Math.abs(slip.offsetLeft - target.offsetLeft + rebound) / 10) - 1 + "px";
+            }
+        },
+        changeWidth: function (target) {
+            if (slip.offsetWidth != target.offsetWidth) {
+                var diff = slip.offsetWidth - target.offsetWidth;
+                if (Math.abs(diff) < 4) slip.style.width = target.offsetWidth + "px";
+                else slip.style.width = slip.offsetWidth - Math.round(diff / 3) + "px";
+            }
+        }
+    };
+} ();
+
+if (window.addEventListener) {
+    window.addEventListener("load", sse2.buildMenu, false);
+}
+else if (window.attachEvent) {
+    window.attachEvent("onload", sse2.buildMenu);
+}
+else {
+    window["onload"] = sse2.buildMenu;
+}
+</script>
+<style>
+#sse2
+{
+    /*You can decorate the menu's container, such as adding background images through this block*/
+    background-color: #036;
+    height: 38px;
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: content-box;
+}
+#sses2
+{
+    margin:0 auto;/*This will make the menu center-aligned. Removing this line will make the menu align left.*/
+}
+#sses2 ul 
+{ 
+    position: relative;
+    list-style-type: none;
+    float:left;
+    padding:0;margin:0;
+}
+#sses2 li
+{
+    float:left;
+    list-style-type: none;
+    padding:0;margin:0;background-image:none;
+}
+/*CSS for background bubble*/
+#sses2 li.highlight
+{
+    background:#F90;
+    top:0px;
+    height:32px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    z-index: 1;
+    position: absolute;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000')";/*For IE 8*/
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#000000'); /*For IE 5.5 - 7*/
+}
+#sses2 li a
+{
+    height:30px;
+    padding-top: 8px;
+    margin: 0 180px;/*used to adjust the distance between each menu item. Now the distance is 20+20=40px.*/
+    color: white;
+    font: bold 15px Calibri;
+    text-align: center;
+    text-decoration: none;
+    float: left;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+</style>
+<style>
+#sliderFrame, #sliderFrame div {
+    box-sizing: content-box;
+}
+/*slider frame*/
+#sliderFrame {
+    width:1200px; 
+    margin: 0 auto; /*center-aligned*/
+    background-color:White; 
+    padding-top:6px; 
+    border-radius: 6px 6px 0 0;
+}
+
+#slider, #slider div.sliderInner {
+    width:1200px;height:320px;/* Must be the same size as the slider images */
+}
+
+#slider {
+	background:transparent url(loading.gif) no-repeat 50% 50%;
+	position:relative;
+	margin:0 auto; /*center-aligned*/
+    transform: translate3d(0,0,0);
+}
+
+/* the link style (if slide image is wrapped in a link) */
+#slider a.imgLink, #slider .video {
+	z-index:2;
+	position:absolute;
+	top:0px;left:0px;border:0;padding:0;margin:0;
+	width:100%;height:100%;
+}
+#slider .video {
+	background:transparent url(video.png) no-repeat 50% 50%;
+}
+
+/* Caption styles */
+#slider div.mc-caption-bg, #slider div.mc-caption-bg2 {
+	position:absolute;
+	width:190px;
+	height:auto;
+	padding:20px;
+	right:30px; /* or left: ??px; */
+	bottom:30px;/* or top: ??px; */
+	z-index:3;
+	overflow:hidden;
+	font-size:0;
+}
+#slider div.mc-caption-bg {
+    /* NOTE: Its opacity is to be set through the sliderOptions.captionOpacity setting in the js-image-slider.js file.*/
+	background:White;/* or any other colors such as Black, or: background:none; */
+	border-radius: 5px;
+}
+#slider div.mc-caption-bg2 {
+    background:none;
+}
+#slider div.mc-caption {
+	font:bold 15px/20px Arial;
+	color:#000000;
+	z-index:4;
+	padding:0px;
+	text-align:center;
+    background:none;
+}
+#slider div.mc-caption a { 
+	color:#66FFFF;
+}
+
+
+/* ------ built-in navigation bullets wrapper that is relative to the #slider ------*/
+#slider div.navBulletsWrapper  {
+	display:none;
+}
+
+/* --------- Others ------- */
+
+#slider div.loading 
+{
+    width:100%; height:100%;
+    background:transparent url(loading.gif) no-repeat 50% 50%;
+    filter: alpha(opacity=60);
+    opacity:0.6;
+    position:absolute;
+    left:0;
+    top:0; 
+    z-index:9;
+}
+
+#slider img, #slider>b, #slider a>b {
+	position:absolute; border:none; display:none;
+}
+
+#slider div.sliderInner {
+	overflow:hidden; 
+	-webkit-transform: rotate(0.000001deg);/* fixed the Chrome not crop border-radius bug*/
+	position:absolute; top:0; left:0;
+}
+
+#slider>a, #slider video, #slider audio {display:none;}
+
+
+
+/* -- thumbnails -- */
+#thumbs
+{
+	background:white url(thumbs-bar.gif) repeat-x 0 0;
+	border:1px solid white; text-align:center;
+	font-size:0px;
+	line-height:45px;
+}
+#thumbs .thumb 
+{
+    width:60px;height:45px;
+    cursor:pointer;
+    text-align:center;
+    border-left:1px solid #FFF; border-right:1px solid #DDD; 
+    
+    display:inline-block;
+    *display:inline;zoom:1; /*IE Hack*/
+}
+#thumbs .thumb-on {background-image: url(active-bg.png);}
+#thumbs .thumb img {vertical-align:middle;}
+</style>
+<script src="js/js-image-slider.js" type="text/javascript"></script>
+<style>
+.anuj1{
+font-family:Calibri;
+font-size:30px;
+color:#036;
+}
+.anuj2{
+font-family:Calibri;
+font-size:20px;
+color:#036;
+}
+.anuj6{
+position:absolute;
+left:-10px;
+color:#036;
+}
+</style>
+</head>
+<body>
+<div><img src="logo.png"/></div>
+<div id="sse2">
+  <div id="sses2">
+    <ul>
+      <li><a href="ij.html">HOME</a></li>
+      <li><a href="aboutus.html">ABOUT US</a></li>
+      <li><a href="contactus.html">CONTACT US</a></li>
+    </ul>
+  </div>
+</div>
+<div id="sliderFrame">
+        <div id="slider">
+            <img src="21.jpg"/>
+            <img src="22.jpg" />
+            <img src="23.jpg"/>
+         </div>
+    </div>
+<h1 class="anuj1">Creative Events</h1>
+<pre class="anuj2">"The meaning of life is contained in every single expression of life. It is present in the infinity of forms and phenomena that exist in all of creation".
+
+We emphasize the expression of thoughts and ideas through Art. Any motion or gesture,however weak or intense,can be perfectly portrayed through the 
+mesmerizing tools of Art. We cover all sorts of activities pertaining to the interest of the youngsters and provides them a platform to showcase their talent 
+in areas of painting,rangoli and sketching. Students from all the domains participate and enjoy the events.
+
+Painters from the different traditions have striven to express their feelings through their Art. Not everyone can make a living depicting their moods by the 
+way of creative endeavors,but almost everyone can pick up a brush and find a new way to convey emotions. This stands the main motive behind the Creative 
+Team of JIIT-128 which organizes painting competitions around the various themes. </pre>
+<h1 class="anuj1">Upcoming Creative Events</h1>
+<ul class="anuj6">
+<li class="anuj2">Creative Team of our college will organize Intra-College Creative events on 23rd FEB 2015.</li>
+<li class="anuj2">Creative Team will organize painting and rangoli competitions in the Annual College Cultural and Technical Fest which will be held in MAR 2015.</li>
+<br>
+<br>
+<br>
+</ul>
+</body>
+</html>

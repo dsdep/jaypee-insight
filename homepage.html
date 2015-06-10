@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<head>
+<script>
+var sse2 = function () {
+    var rebound = 20; //set it to 0 if rebound effect is not prefered
+    var slip, k;
+    return {
+        buildMenu: function () {
+            var m = document.getElementById('sses2');
+            if (!m) return;
+            var ul = m.getElementsByTagName("ul")[0];
+            m.style.width = ul.offsetWidth + 1 + "px";
+            var items = m.getElementsByTagName("li");
+            var a = m.getElementsByTagName("a");
+
+            slip = document.createElement("li");
+            slip.className = "highlight";
+            ul.appendChild(slip);
+
+            var url = document.location.href.toLowerCase();
+            k = -1;
+            var nLength = -1;
+            for (var i = 0; i < a.length; i++) {
+                if (url.indexOf(a[i].href.toLowerCase()) != -1 && a[i].href.length > nLength) {
+                    k = i;
+                    nLength = a[i].href.length;
+                }
+            }
+
+            if (k == -1 && /:\/\/(?:www\.)?[^.\/]+?\.[^.\/]+\/?$/.test) {
+                for (var i = 0; i < a.length; i++) {
+                    if (a[i].getAttribute("maptopuredomain") == "true") {
+                        k = i;
+                        break;
+                    }
+                }
+                if (k == -1 && a[0].getAttribute("maptopuredomain") != "false")
+                    k = 0;
+            }
+            if (k > -1) {
+                slip.style.width = items[k].offsetWidth + "px";
+                //slip.style.left = items[k].offsetLeft + "px";
+                sse2.move(items[k]); //comment out this line and uncomment the line above to disable initial animation
+            }
+ else {
+                slip.style.visibility = "hidden";
+            }
+
+            for (var i = 0; i < items.length - 1; i++) {
+                items[i].onmouseover = function () {
+                    if (k == -1) slip.style.visibility = "visible";
+                    if (this.offsetLeft != slip.offsetLeft) {
+                        sse2.move(this);
+                    }
+                }
+            }
+
+            m.onmouseover = function () {
+                if (slip.t2)
+                    slip.t2 = clearTimeout(slip.t2);
+            };
+
+            m.onmouseout = function () {
+                if (k > -1 && items[k].offsetLeft != slip.offsetLeft) {
+                    slip.t2 = setTimeout(function () { sse2.move(items[k]); }, 50);
+                }
+                if (k == -1) slip.t2 = setTimeout(function () { slip.style.visibility = "hidden"; }, 50);
+            };
+        },
+        move: function (target) {
+            clearInterval(slip.timer);
+            var direction = (slip.offsetLeft < target.offsetLeft) ? 1 : -1;
+            slip.timer = setInterval(function () { sse2.mv(target, direction); }, 15);
+        },
+        mv: function (target, direction) {
+            if (direction == 1) {
+                if (slip.offsetLeft - rebound < target.offsetLeft)
+                    this.changePosition(target, 1);
+                else {
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, 1);
+                    }, 15);
+                }
+            }
+            else {
+                if (slip.offsetLeft + rebound > target.offsetLeft)
+                    this.changePosition(target, -1);
+                else { 
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, -1);
+                    }, 15);
+                }
+            }
+            this.changeWidth(target);
+        },
+        recoil: function (target, direction) {
+            if (direction == -1) {
+                if (slip.offsetLeft > target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft + 2 + "px";
+            }
+            else {
+                if (slip.offsetLeft < target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft - 2 + "px";
+            }
+        },
+        changePosition: function (target, direction) {
+            if (direction == 1) {
+                //following +1 will fix the IE8 bug of x+1=x, we force it to x+2
+                slip.style.left = slip.offsetLeft + Math.ceil(Math.abs(target.offsetLeft - slip.offsetLeft + rebound) / 10) + 1 + "px";
+            }
+            else {
+                //following -1 will fix the Opera bug of x-1=x, we force it to x-2
+                slip.style.left = slip.offsetLeft - Math.ceil(Math.abs(slip.offsetLeft - target.offsetLeft + rebound) / 10) - 1 + "px";
+            }
+        },
+        changeWidth: function (target) {
+            if (slip.offsetWidth != target.offsetWidth) {
+                var diff = slip.offsetWidth - target.offsetWidth;
+                if (Math.abs(diff) < 4) slip.style.width = target.offsetWidth + "px";
+                else slip.style.width = slip.offsetWidth - Math.round(diff / 3) + "px";
+            }
+        }
+    };
+} ();
+if (window.addEventListener) {
+    window.addEventListener("load", sse2.buildMenu, false);
+}
+else if (window.attachEvent) {
+    window.attachEvent("onload", sse2.buildMenu);
+}
+else {
+    window["onload"] = sse2.buildMenu;
+}
+</script>
+<style>
+h1{
+background-color:#666;
+font: bold 35px Courier New;
+text-align:right;
+color:#990;
+padding:50px;
+}
+.anuj
+{
+background-color:#666;
+font:bold 30px Courier New;
+text-align:left;
+color:#990;
+padding:33px;
+}
+#sse2
+{
+    /*You can decorate the menu's container, such as adding background images through this block*/
+    background-color:#666;
+    height: 38px;
+    padding: 15px;
+    border-radius: 8px;
+    box-sizing: content-box;
+}
+#sses2
+{
+    margin:0 auto;/*This will make the menu center-aligned. Removing this line will make the menu align left.*/
+}
+#sses2 ul 
+{ 
+    position: relative;
+    list-style-type: none;
+    float:left;
+    padding:0;margin:0;
+}
+#sses2 li
+{
+    float:left;
+    list-style-type: none;
+    padding:0;margin:0;background-image:none;
+}
+/*CSS for background bubble*/
+#sses2 li.highlight
+{
+    background:#990;
+    top:0px;
+    height:40px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    z-index: 1;
+    position: absolute;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000')";/*For IE 8*/
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#000000'); /*For IE 5.5 - 7*/
+}
+#sses2 li a
+{
+    height:30px;
+    padding-top: 8px;
+    margin: 0 100px;/*used to adjust the distance between each menu item. Now the distance is 20+20=40px.*/
+    color: white;
+    font: bold 18px Courier New;
+    text-align: center;
+    text-decoration: none;
+    float: left;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+</style>
+<style>
+#sliderFrame, #sliderFrame div {
+    box-sizing: content-box;
+}
+/*slider frame*/
+#sliderFrame {
+    width:960px; 
+    margin: 0 auto; /*center-aligned*/
+    background-color:White; 
+    padding-top:6px; 
+    border-radius: 6px 6px 0 0;
+}
+
+#slider, #slider div.sliderInner {
+    width:960px;height:400px;/* Must be the same size as the slider images */
+}
+
+#slider {
+	background:transparent url(loading.gif) no-repeat 50% 50%;
+	position:relative;
+	margin:0 auto; /*center-aligned*/
+    transform: translate3d(0,0,0);
+}
+
+/* the link style (if slide image is wrapped in a link) */
+#slider a.imgLink, #slider .video {
+	z-index:2;
+	position:absolute;
+	top:0px;left:0px;border:0;padding:0;margin:0;
+	width:100%;height:100%;
+}
+#slider .video {
+	background:transparent url(video.png) no-repeat 50% 50%;
+}
+
+/* Caption styles */
+#slider div.mc-caption-bg, #slider div.mc-caption-bg2 {
+	position:absolute;
+	width:190px;
+	height:auto;
+	padding:20px;
+	right:30px; /* or left: ??px; */
+	bottom:30px;/* or top: ??px; */
+	z-index:3;
+	overflow:hidden;
+	font-size:0;
+}
+#slider div.mc-caption-bg {
+    /* NOTE: Its opacity is to be set through the sliderOptions.captionOpacity setting in the js-image-slider.js file.*/
+	background:White;/* or any other colors such as Black, or: background:none; */
+	border-radius: 5px;
+}
+#slider div.mc-caption-bg2 {
+    background:none;
+}
+#slider div.mc-caption {
+	font:bold 15px/20px Arial;
+	color:#000000;
+	z-index:4;
+	padding:0px;
+	text-align:center;
+    background:none;
+}
+#slider div.mc-caption a { 
+	color:#66FFFF;
+}
+
+
+/* ------ built-in navigation bullets wrapper that is relative to the #slider ------*/
+#slider div.navBulletsWrapper  {
+	display:none;
+}
+
+/* --------- Others ------- */
+
+#slider div.loading 
+{
+    width:100%; height:100%;
+    background:transparent url(loading.gif) no-repeat 50% 50%;
+    filter: alpha(opacity=60);
+    opacity:0.6;
+    position:absolute;
+    left:0;
+    top:0; 
+    z-index:9;
+}
+
+#slider img, #slider>b, #slider a>b {
+	position:absolute; border:none; display:none;
+}
+
+#slider div.sliderInner {
+	overflow:hidden; 
+	-webkit-transform: rotate(0.000001deg);/* fixed the Chrome not crop border-radius bug*/
+	position:absolute; top:0; left:0;
+}
+
+#slider>a, #slider video, #slider audio {display:none;}
+
+
+
+/* -- thumbnails -- */
+#thumbs
+{
+	background:white url(thumbs-bar.gif) repeat-x 0 0;
+	border:1px solid white; text-align:center;
+	font-size:0px;
+	line-height:45px;
+}
+#thumbs .thumb 
+{
+    width:60px;height:45px;
+    cursor:pointer;
+    text-align:center;
+    border-left:1px solid #FFF; border-right:1px solid #DDD; 
+    
+    display:inline-block;
+    *display:inline;zoom:1; /*IE Hack*/
+}
+#thumbs .thumb-on {background-image: url(active-bg.png);}
+#thumbs .thumb img {vertical-align:middle;}
+</style>
+<script src="js-image-slider.js" type="text/javascript"></script>
+<style>
+.ch-grid {
+    margin: 20px 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+ 
+.ch-grid:after,
+.ch-item:before {
+    content: '';
+    display: table;
+}
+ 
+.ch-grid:after {
+    clear: both;
+}
+ 
+.ch-grid li {
+    width: 220px;
+    height: 220px;
+    display: inline-block;
+    margin: 20px;
+}
+.ch-item {
+    width: 105%;
+    height: 105%;
+    border-radius: 50%;
+    position: relative;
+    cursor: default;
+    perspective: 900px;
+}
+.ch-info{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+.ch-info > div {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-position: center center;
+    transition: all 0.4s linear;
+    transform-origin: 50% 0%;
+}
+.ch-info .ch-info-front {
+    box-shadow: inset 0 0 0 16px #990;
+}
+.ch-info .ch-info-back {
+    transform: translate3d(0,0,-220px) rotate3d(1,0,0,90deg);
+    background: #990;
+    opacity: 0;
+}
+.ch-img-1 { 
+    background-image: url("shavi1.jpg");
+}
+ 
+.ch-img-2 { 
+    background-image: url("shavi2.jpg");
+}
+ 
+.ch-img-3 { 
+    background-image: url("shavi3.jpg");
+}
+ 
+.ch-info h3 {
+    color: #fff;
+    letter-spacing: 1px;
+    font-size: 22px;
+    margin: 0 15px;
+    padding: 60px 0 0 0;
+    height: 110px;
+    font-family:Courier New;
+    text-shadow: 
+        0 0 1px #fff, 
+        0 1px 2px rgba(0,0,0,0.3);
+}
+.ch-info p {
+    color: #fff;
+    padding: 10px 5px;
+    margin: 0 30px;
+    font-size: 50px;
+}
+ 
+.ch-info p a {
+    display:block;
+    color: rgba(255,255,255,0.7);
+    font-style:bold;
+    font-weight:700;
+    font-size: 20px;
+    letter-spacing: 0px;
+    padding-top: 4px;
+    font-family:Courier New;
+    text-transform:none;
+}
+.ch-info p a:hover {
+    color:#666;
+}
+.ch-item:hover .ch-info-front {
+    transform: translate3d(0,280px,0) rotate3d(1,0,0,-90deg);
+    opacity: 0;
+}
+.ch-item:hover .ch-info-back {
+    transform: rotate3d(1,0,0,0deg);
+    opacity: 1;
+}
+</style>
+<style>
+.ch-grid1 {
+    margin: 20px 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+ 
+.ch-grid1:after,
+.ch-item1:before {
+    content: '';
+    display: table;
+}
+ 
+.ch-grid1:after {
+    clear: both;
+}
+ 
+.ch-grid1 li {
+    width: 220px;
+    height: 220px;
+    display: inline-block;
+    margin: 20px;
+}
+.ch-item1 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    cursor: default;
+}
+.ch-info-wrap, 
+.ch-info1{
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+}
+.ch-info-wrap {
+    top: 20px;
+    left: 20px;
+    background:#666;
+    box-shadow: 
+        0 0 0 20px #990, 
+        inset 0 0 3px rgba(115,114, 23, 0.8);
+ 
+}
+.ch-info1 > div {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-position: center center;
+}
+.ch-info1 .ch-info-front1 {
+    transition: all 0.6s ease-in-out;
+}
+.ch-info1 .ch-info-back1 {
+    opacity: 0;
+    background:#666;
+    pointer-events: none;
+    transform: scale(1.5);
+    transition: all 0.4s ease-in-out 0.2s;
+}
+.ch-img-11 { 
+    background-image: url("imp.jpg");
+}
+ 
+.ch-img-21 { 
+    background-image: url("imp1.jpg");
+}
+ 
+.ch-img-31 { 
+    background-image: url("imp2.jpg");
+}
+ 
+.ch-info1 h4 {
+    color: #fff;
+    letter-spacing: 0px;
+    font-size: 17px;
+    margin: 0 15px;
+    padding: 40px 0 0 0;
+    height: 80px;
+    font-family:Courier New;
+    text-shadow: 
+        0 0 1px #fff, 
+        0 1px 2px rgba(0,0,0,0.3);
+}
+.ch-info1 p {
+    color: #fff;
+    padding: 10px 5px 0;
+    margin: 0 30px;
+    font-size: 50px;
+    
+}
+ 
+.ch-info1 p a {
+    display: block;
+    color: #990;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0px;
+    padding-top: 4px;
+    font-family:Courier New;
+}
+.ch-info1 p a:hover {
+    color: #fff;
+}
+.ch-item1:hover .ch-info-front1 {
+    transform: scale(0);
+    opacity: 0;
+} 
+.ch-item1:hover .ch-info-back1 {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+</style>
+</head>
+<body>
+<h1><img src="priyanshaa.jpg" align="left"  height="100" width="190"/>JAYPEE INSIGHT</h1> 
+<div id="sse2"> 
+<div id="sses2">
+    <ul>
+      <li><a href="?menu=2&skin=1&p=Javascript-Menus">NEWS</a></li>
+      <li><a href="?menu=2&skin=1&p=Horizontal-Menus">JYC EVENTS</a></li>
+      <li><a href="forms.html">LOGIN/REGISTER</a></li>
+        <li><a href="pd.html">FEEDBACK</a></li>
+    </ul>
+  </div>
+</div>
+ <div id="sliderFrame">
+        <div id="slider">
+            <img src="anuj1.jpg"/>
+            <img src="anuj2.jpg" />
+            <img src="anuj3.jpg"/>
+            <img src="anuj4.jpg"/>
+            <img src="anuj7.jpg"/>
+         </div>
+    </div>
+<h1 class="anuj">JYC EVENTS</h1>
+<ul class="ch-grid">
+    <li>
+        <div class="ch-item">
+            <div class="ch-info">
+              <div class="ch-info-front ch-img-1"></div>
+               <div class="ch-info-back">
+                <h3>It includes info about all the sports events.</h3>
+                 <p><a href="http://drbl.in/eOPF">EVENTS INFO</a></p>
+            </div>
+        </div>
+     </div>
+  </li>
+    <li>
+        <div class="ch-item">
+            <div class="ch-info">
+              <div class="ch-info-front ch-img-2"></div>
+               <div class="ch-info-back">
+                <h3>It includes info about all the creative events.</h3>
+                <p><a href="http://drbl.in/eKMi">EVENTS INFO</a></p>
+            </div>
+        </div>
+</div>    
+</li>
+    <li>
+        <div class="ch-item">
+            <div class="ch-info">
+                  <div class="ch-info-front ch-img-3"></div>
+               <div class="ch-info-back">
+                <h3>It includes info about all the music events.</h3>
+                <p><a href="http://drbl.in/ekhp">EVENTS INFO</a></p>
+            </div>
+        </div>
+</div>
+</li>
+</ul>
+<ul class="ch-grid1">
+<li>
+         
+    <div class="ch-item1 ch-img-11">                
+        <div class="ch-info-wrap">
+            <div class="ch-info1">
+                <div class="ch-info-front1 ch-img-11"></div>
+                <div class="ch-info-back1">
+                    <h4>It includes info about all the coding events</h4>
+                    <p><a href="http://drbl.in/ewUW">EVENTS INFO</a></p>
+                </div>    
+            </div>
+        </div>
+    </div>
+</li>
+   <li>
+    <div class="ch-item1 ch-img-21">                
+        <div class="ch-info-wrap">
+            <div class="ch-info1">
+                <div class="ch-info-front1 ch-img-21"></div>
+                <div class="ch-info-back1">
+                    <h4>It includes info about all the robotics events</h4>
+                    <p><a href="http://drbl.in/ewUW">EVENTS INFO</a></p>
+                </div>    
+            </div>
+        </div>
+    </div>
+</li>
+<li>
+    
+    <div class="ch-item1 ch-img-31">                
+        <div class="ch-info-wrap">
+            <div class="ch-info1">
+                <div class="ch-info-front1 ch-img-31"></div>
+                <div class="ch-info-back1">
+                    <h4>It includes info about all the dramatics events</h4>
+                    <p><a href="http://drbl.in/ewUW">EVENTS INFO</a></p>
+                </div>    
+            </div>
+        </div>
+    </div>
+</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<head>
+<script>
+var sse2 = function () {
+    var rebound = 20; //set it to 0 if rebound effect is not prefered
+    var slip, k;
+    return {
+        buildMenu: function () {
+            var m = document.getElementById('sses2');
+            if (!m) return;
+            var ul = m.getElementsByTagName("ul")[0];
+            m.style.width = ul.offsetWidth + 1 + "px";
+            var items = m.getElementsByTagName("li");
+            var a = m.getElementsByTagName("a");
+
+            slip = document.createElement("li");
+            slip.className = "highlight";
+            ul.appendChild(slip);
+
+            var url = document.location.href.toLowerCase();
+            k = -1;
+            var nLength = -1;
+            for (var i = 0; i < a.length; i++) {
+                if (url.indexOf(a[i].href.toLowerCase()) != -1 && a[i].href.length > nLength) {
+                    k = i;
+                    nLength = a[i].href.length;
+                }
+            }
+
+            if (k == -1 && /:\/\/(?:www\.)?[^.\/]+?\.[^.\/]+\/?$/.test) {
+                for (var i = 0; i < a.length; i++) {
+                    if (a[i].getAttribute("maptopuredomain") == "true") {
+                        k = i;
+                        break;
+                    }
+                }
+                if (k == -1 && a[0].getAttribute("maptopuredomain") != "false")
+                    k = 0;
+            }
+            if (k > -1) {
+                slip.style.width = items[k].offsetWidth + "px";
+                //slip.style.left = items[k].offsetLeft + "px";
+                sse2.move(items[k]); //comment out this line and uncomment the line above to disable initial animation
+            }
+            else {
+                slip.style.visibility = "hidden";
+            }
+
+            for (var i = 0; i < items.length - 1; i++) {
+                items[i].onmouseover = function () {
+                    if (k == -1) slip.style.visibility = "visible";
+                    if (this.offsetLeft != slip.offsetLeft) {
+                        sse2.move(this);
+                    }
+                }
+            }
+
+            m.onmouseover = function () {
+                if (slip.t2)
+                    slip.t2 = clearTimeout(slip.t2);
+            };
+
+            m.onmouseout = function () {
+                if (k > -1 && items[k].offsetLeft != slip.offsetLeft) {
+                    slip.t2 = setTimeout(function () { sse2.move(items[k]); }, 50);
+                }
+                if (k == -1) slip.t2 = setTimeout(function () { slip.style.visibility = "hidden"; }, 50);
+            };
+        },
+        move: function (target) {
+            clearInterval(slip.timer);
+            var direction = (slip.offsetLeft < target.offsetLeft) ? 1 : -1;
+            slip.timer = setInterval(function () { sse2.mv(target, direction); }, 15);
+        },
+        mv: function (target, direction) {
+            if (direction == 1) {
+                if (slip.offsetLeft - rebound < target.offsetLeft)
+                    this.changePosition(target, 1);
+                else {
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, 1);
+                    }, 15);
+                }
+            }
+            else {
+                if (slip.offsetLeft + rebound > target.offsetLeft)
+                    this.changePosition(target, -1);
+                else {
+                    clearInterval(slip.timer);
+                    slip.timer = setInterval(function () {
+                        sse2.recoil(target, -1);
+                    }, 15);
+                }
+            }
+            this.changeWidth(target);
+        },
+        recoil: function (target, direction) {
+            if (direction == -1) {
+                if (slip.offsetLeft > target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft + 2 + "px";
+            }
+            else {
+                if (slip.offsetLeft < target.offsetLeft) {
+                    slip.style.left = target.offsetLeft + "px";
+                    clearInterval(slip.timer);
+                }
+                else slip.style.left = slip.offsetLeft - 2 + "px";
+            }
+        },
+        changePosition: function (target, direction) {
+            if (direction == 1) {
+                //following +1 will fix the IE8 bug of x+1=x, we force it to x+2
+                slip.style.left = slip.offsetLeft + Math.ceil(Math.abs(target.offsetLeft - slip.offsetLeft + rebound) / 10) + 1 + "px";
+            }
+            else {
+                //following -1 will fix the Opera bug of x-1=x, we force it to x-2
+                slip.style.left = slip.offsetLeft - Math.ceil(Math.abs(slip.offsetLeft - target.offsetLeft + rebound) / 10) - 1 + "px";
+            }
+        },
+        changeWidth: function (target) {
+            if (slip.offsetWidth != target.offsetWidth) {
+                var diff = slip.offsetWidth - target.offsetWidth;
+                if (Math.abs(diff) < 4) slip.style.width = target.offsetWidth + "px";
+                else slip.style.width = slip.offsetWidth - Math.round(diff / 3) + "px";
+            }
+        }
+    };
+} ();
+
+if (window.addEventListener) {
+    window.addEventListener("load", sse2.buildMenu, false);
+}
+else if (window.attachEvent) {
+    window.attachEvent("onload", sse2.buildMenu);
+}
+else {
+    window["onload"] = sse2.buildMenu;
+}
+</script>
+<style>
+#sse2
+{
+    /*You can decorate the menu's container, such as adding background images through this block*/
+    background-color: #036;
+    height: 38px;
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: content-box;
+}
+#sses2
+{
+    margin:0 auto;/*This will make the menu center-aligned. Removing this line will make the menu align left.*/
+}
+#sses2 ul 
+{ 
+    position: relative;
+    list-style-type: none;
+    float:left;
+    padding:0;margin:0;
+}
+#sses2 li
+{
+    float:left;
+    list-style-type: none;
+    padding:0;margin:0;background-image:none;
+}
+/*CSS for background bubble*/
+#sses2 li.highlight
+{
+    background:#F90;
+    top:0px;
+    height:32px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    z-index: 1;
+    position: absolute;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000')";/*For IE 8*/
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#000000'); /*For IE 5.5 - 7*/
+}
+#sses2 li a
+{
+    height:30px;
+    padding-top: 8px;
+    margin: 0 180px;/*used to adjust the distance between each menu item. Now the distance is 20+20=40px.*/
+    color: white;
+    font: bold 15px Calibri;
+    text-align: center;
+    text-decoration: none;
+    float: left;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+</style>
+<style>
+.ch-grid {
+    margin: 20px 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+ 
+.ch-grid:after,
+.ch-item:before {
+    content: '';
+    display: table;
+}
+ 
+.ch-grid:after {
+    clear: both;
+}
+ 
+.ch-grid li {
+    width: 200px;
+    height: 200px;
+    display: inline-block;
+    margin: 20px;
+}
+.ch-item {
+    width: 105%;
+    height: 105%;
+    border-radius: 50%;
+    position: relative;
+    cursor: default;
+    perspective: 900px;
+}
+.ch-info{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+.ch-info > div {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-position: center center;
+    transition: all 0.4s linear;
+    transform-origin: 50% 0%;
+}
+.ch-info .ch-info-front {
+    box-shadow: inset 0 0 0 16px #036;
+}
+.ch-info .ch-info-back {
+    transform: translate3d(0,0,-220px) rotate3d(1,0,0,90deg);
+    background: #036;
+    opacity: 0;
+}
+.ch-img-1 { 
+    background-image: url("8.png");
+}
+ 
+.ch-img-2 { 
+    background-image: url("9.png");
+}
+
+.ch-info h3 {
+    color: #fff;
+    letter-spacing: 1px;
+    font-size: 18px;
+    margin: 0 15px;
+    padding: 60px 0 0 0;
+    height: 110px;
+    font-family:Courier New;
+    text-shadow: 
+        0 0 1px #fff, 
+        0 1px 2px rgba(0,0,0,0.3);
+}
+.ch-info p {
+    color: #fff;
+    padding: 10px 5px;
+    margin: 0 30px;
+    font-size: 50px;
+}
+ 
+.ch-info p a {
+    display:block;
+    color: rgba(255,255,255,0.7);
+    font-style:bold;
+    font-weight:700;
+    font-size: 18px;
+    letter-spacing: 0px;
+    padding-top: 4px;
+    font-family:Courier New;
+    text-transform:none;
+}
+.ch-info p a:hover {
+    color:#F90;
+}
+.ch-item:hover .ch-info-front {
+    transform: translate3d(0,280px,0) rotate3d(1,0,0,-90deg);
+    opacity: 0;
+}
+.ch-item:hover .ch-info-back {
+    transform: rotate3d(1,0,0,0deg);
+    opacity: 1;
+}
+</style>
+<style>
+.anuj1{
+font-family:Calibri;
+font-size:30px;
+color:#036;
+}
+.anuj2{
+font-family:Calibri;
+font-size:20px;
+color:#036;
+}
+</style>
+</head>
+<body>
+<div><img src="logo.png"/></div>
+<div id="sse2">
+  <div id="sses2">
+    <ul>
+      <li><a href="ij.html">HOME</a></li>
+      <li><a href="aboutus.html">ABOUT US</a></li>
+      <li><a href="contactus.html">CONTACT US</a></li>
+    </ul>
+  </div>
+</div>
+<br>
+<br>
+<ul class="ch-grid">
+    <li>
+        <div class="ch-item">
+            <div class="ch-info">
+              <div class="ch-info-front ch-img-1"></div>
+               <div class="ch-info-back">
+                <h3>It includes info about all the CSE workshops.</h3>
+                 <p><a href="csew.html">HOME</a></p>
+            </div>
+        </div>
+     </div>
+  </li>
+    <li>
+        <div class="ch-item">
+            <div class="ch-info">
+              <div class="ch-info-front ch-img-2"></div>
+               <div class="ch-info-back">
+                <h3>It includes info about all the ECE workshops.</h3>
+                <p><a href="ecew.html">HOME</a></p>
+            </div>
+        </div>
+</div>
+</li>
+</ul>    
+<h1 class="anuj1">JIIT Workshops</h1>
+<pre class="anuj2"> Many CSE and ECE workshops are organized in our college premises so that the students will come to know that how the large projects are made in Industry.
+Participating in these workshops will be very beneficial for the students in a way that after attending the workshop they will be able to make projects.
+
+Major workshops of our college includes ETTLIS,ISSPIT and ICSPC which will occur every year. SAP Techniuniversity was also organized in our college for the first 
+time. Finally aim of these workshops is to spread technical knowledge among the students so that they will come up with bright future.</pre>
+<br>
+<br>
+</body>
+</html>

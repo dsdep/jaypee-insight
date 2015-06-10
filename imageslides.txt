@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="js-image-slider.css" rel="stylesheet" type="text/css" />
+    <script src="js-image-slider.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="sliderFrame">
+        <div id="slider">
+            <img src="slide1.jpg"/>
+            <img src="slide2.jpg" />
+            <img src="news-updates.jpg"/>
+            <img src="297321_352625904817016_395854822_n.jpg"/>
+        </div>
+    </div>
+  </body>
+</html>
